@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전투기 게임</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #airplane {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+        }
+
+        #leftArrow, #rightArrow, #fireButton {
+            position: absolute;
+            bottom: 10px;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+        }
+
+        #leftArrow {
+            left: 20px;
+        }
+
+        #rightArrow {
+            right: 20px;
+        }
+
+        #fireButton {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #obstacle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #bullet {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: yellow;
+            display: none;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+<img id="airplane" src="C:\Users\user\Desktop\wep\image\jet..png" alt="Airplane">
+
+<img id="leftArrow" src="C:\Users\user\Desktop\wep\image\right..jfif" alt="Left Arrow">
+<img id="rightArrow" src="C:\Users\user\Desktop\wep\image\left..jfif" alt="Right Arrow">
+<img id="fireButton" src="C:\Users\user\Desktop\wep\image\fire..png" alt="Fire Button">
+
+<div id="obstacle"></div>
+<img id="bullet" src="C:\Users\user\Desktop\wep\image\bullet.real.plus.jfif" alt="Bullet">
+<div id="score">Score: 0</div>
+
+<script>
+    const airplane = document.getElementById('airplane');
+    const leftArrow = document.getElementById('leftArrow');
+    const rightArrow = document.getElementById('rightArrow');
+    const fireButton = document.getElementById('fireButton');
+    const obstacle = document.getElementById('obstacle');
+    const bullet = document.getElementById('bullet');
+    const scoreDisplay = document.getElementById('score');
+
+    let score = 0;
+
+    let bulletInterval;
+
+    leftArrow.addEventListener('click', () => moveAirplane('left'));
+    rightArrow.addEventListener('click', () => moveAirplane('right'));
+    fireButton.addEventListener('click', () => {
+        if (!bulletInterval) {
+            bulletInterval = setInterval(shootBullet, 16); // Adjust the interval for smooth movement
+        }
+    });
+    
+    function moveAirplane(direction) {
+        const currentLeft = parseInt(airplane.style.left) || 0;
+
+        if (direction === 'left' && currentLeft > 0) {
+            airplane.style.left = currentLeft - 10 + 'px';
+        } else if (direction === 'right' && currentLeft < window.innerWidth - airplane.offsetWidth) {
+            airplane.style.left = currentLeft + 10 + 'px';
+        }
+    }
+
+    function shootBullet() {
+        const airplanePosition = airplane.getBoundingClientRect();
+        bullet.style.left = `${airplanePosition.left + airplane.offsetWidth / 2 - bullet.offsetWidth / 2}px`;
+        bullet.style.bottom = `${airplanePosition.bottom}px`;
+        bullet.style.display = 'block';
+
+        requestAnimationFrame(moveBullet);
+    }
+
+    function moveBullet() {
+        const bulletPosition = bullet.getBoundingClientRect();
+        bullet.style.bottom = `${bulletPosition.bottom + 5}px`;
+
+        const obstaclePosition = obstacle.getBoundingClientRect();
+
+        if (
+            bulletPosition.left < obstaclePosition.left + obstacle.offsetWidth &&
+            bulletPosition.left + bullet.offsetWidth > obstaclePosition.left &&
+            bulletPosition.bottom < obstaclePosition.bottom + obstacle.offsetHeight &&
+            bulletPosition.bottom + bullet.offsetHeight > obstaclePosition.bottom
+        ) {
+            // Collision detected
+            score += 10;
+            scoreDisplay.textContent = `Score: ${score}`;
+
+            // Reset bullet position
+            bullet.style.display = 'none';
+            bullet.style.bottom = `${airplanePosition.bottom}px`;
+
+            // Reset obstacle position
+            obstacle.style.top = '0';
+            obstacle.style.left = `${Math.random() * (window.innerWidth - obstacle.offsetWidth)}px`;
+        }
+
+       
+        if (bulletPosition.bottom > 0) {
+            requestAnimationFrame(moveBullet);
+        } else {
+            bullet.style.display = 'none';
+            bullet.style.bottom = `${airplanePosition.bottom}px`;
+            clearInterval(bulletInterval);
+            bulletInterval = null;
+        }
+    }
+
+    function moveObstacle() {
+        const obstaclePosition = obstacle.getBoundingClientRect();
+        obstacle.style.top = `${obstaclePosition.top + 5}px`;
+
+        if (obstaclePosition.top > window.innerHeight) {
+            obstacle.style.top = '0';
+            obstacle.style.left = `${Math.random() * (window.innerWidth - obstacle.offsetWidth)}px`;
+        }
+
+        requestAnimationFrame(moveObstacle);
+    }
+
+    moveObstacle(); // Start moving obstacle
+</script>
+
+</body>
+</html>
